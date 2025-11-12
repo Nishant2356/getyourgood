@@ -1,5 +1,6 @@
 import { Item, Address } from "@/types";
 import React, { useState } from "react";
+import { toast } from "sonner"; // ✅ added
 
 interface Creator {
   id: string;
@@ -35,21 +36,23 @@ export default function OrderListingCard({
   const [loading, setLoading] = useState(false);
 
   const handleCancel = async () => {
-    if (!confirm("Are you sure you want to cancel this order?")) return;
+    const confirmed = window.confirm("⚠️ Are you sure you want to cancel this order?");
+    if (!confirmed) return;
 
     setLoading(true);
     try {
       const res = await fetch(`/api/orders/delete/${id}`, { method: "DELETE" });
       const data = await res.json();
+
       if (data.success) {
-        alert("Order cancelled successfully!");
+        toast.success("Order cancelled successfully ✅");
         onCancel?.(id); // inform parent to remove order from list
       } else {
-        alert(data.message || "Failed to cancel order");
+        toast.error(data.message || "Failed to cancel order ❌");
       }
     } catch (err) {
       console.error(err);
-      alert("Server error");
+      toast.error("Server error ⚠️");
     } finally {
       setLoading(false);
     }
@@ -71,7 +74,9 @@ export default function OrderListingCard({
       <div className="space-y-1">
         {items.map((item) => (
           <div key={item.id} className="flex justify-between items-center text-sm">
-            <span>{item.name} x {item.quantity}</span>
+            <span>
+              {item.name} x {item.quantity}
+            </span>
             <span>₹{item.price * item.quantity}</span>
           </div>
         ))}
@@ -93,12 +98,14 @@ export default function OrderListingCard({
       </div>
 
       <div className="text-sm text-slate-600 mt-2">
-        <p><strong>Delivery Time:</strong> {deliveryTime}</p>
-        <p><strong>Address:</strong> {address.street}, {address.houseNo}, {address.roomNo}, {address.city}</p>
+        <p>
+          <strong>Delivery Time:</strong> {deliveryTime}
+        </p>
+        <p>
+          <strong>Address:</strong> {address.street}, {address.houseNo}, {address.roomNo},{" "}
+          {address.city}
+        </p>
       </div>
-
-      {/* <p className="text-xs text-slate-500 mt-1">Listed by: {creator?.name || "Unknown"}</p>
-      <p className="text-xs text-slate-500 mt-1">Contact: {creator?.phone || "Unknown"}</p> */}
 
       <button
         onClick={handleCancel}
