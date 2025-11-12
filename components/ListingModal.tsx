@@ -87,16 +87,15 @@ export default function ListingModal({ isOpen, onClose, onOpenCart }: ListingMod
             onClick={onClose}
           />
 
-          {/* Modal */}
           <motion.div
             initial={{ y: -50, opacity: 0, scale: 0.95 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: -50, opacity: 0, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="fixed top-1/2 left-1/2 z-50 w-full max-w-3xl -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-lg p-6 flex flex-col"
+            className="fixed top-1/2 left-1/2 z-50 w-full max-w-3xl h-[90vh] sm:h-auto -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-lg flex flex-col"
           >
             {/* Header */}
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center p-4 border-b">
               <h2 className="text-lg font-semibold">Create Listing</h2>
               <button onClick={onClose}>
                 <X size={20} />
@@ -104,7 +103,7 @@ export default function ListingModal({ isOpen, onClose, onOpenCart }: ListingMod
             </div>
 
             {/* Search Bar */}
-            <div className="flex items-center bg-slate-100 rounded-lg px-3 py-2 shadow-inner mb-4">
+            <div className="flex items-center bg-slate-100 rounded-lg mx-4 mt-4 px-3 py-2 shadow-inner">
               <Search size={18} className="text-slate-500" />
               <input
                 type="text"
@@ -115,31 +114,33 @@ export default function ListingModal({ isOpen, onClose, onOpenCart }: ListingMod
               />
             </div>
 
-            {/* Product Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 flex-1 overflow-y-auto">
-              {loading ? (
-                <div className="col-span-full text-center text-sm text-slate-500">
-                  Loading products...
-                </div>
-              ) : filteredProducts.length > 0 ? (
-                filteredProducts.map((p) => (
-                  <ProductCard
-                    key={p.id}
-                    {...p}
-                    onQuantityChange={handleQuantityChange}
-                  />
-                ))
-              ) : (
-                <div className="col-span-full text-center text-sm text-slate-500">
-                  No products found
-                </div>
-              )}
+            {/* Scrollable Product Grid */}
+            <div className="flex-1 overflow-y-auto px-4 py-4 pb-28"> {/* Added bottom padding for fixed button */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {loading ? (
+                  <div className="col-span-full text-center text-sm text-slate-500">
+                    Loading products...
+                  </div>
+                ) : filteredProducts.length > 0 ? (
+                  filteredProducts.map((p) => (
+                    <ProductCard
+                      key={p.id}
+                      {...p}
+                      onQuantityChange={handleQuantityChange}
+                    />
+                  ))
+                ) : (
+                  <div className="col-span-full text-center text-sm text-slate-500">
+                    No products found
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Cart Button at Bottom */}
-            <div className="mt-4">
+            {/* ✅ Fixed Cart Button */}
+            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] sm:w-[80%] z-50">
               <button
-                className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium"
+                className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium shadow-lg"
                 disabled={totalItems === 0}
                 onClick={() => {
                   onClose(); // close listing modal
@@ -147,7 +148,9 @@ export default function ListingModal({ isOpen, onClose, onOpenCart }: ListingMod
                 }}
               >
                 <ShoppingCart size={20} />
-                {totalItems > 0 ? `Go to Cart (${totalItems} items)` : "Cart is Empty"}
+                {totalItems > 0
+                  ? `Go to Cart (${totalItems} items)`
+                  : "Cart is Empty"}
               </button>
             </div>
           </motion.div>

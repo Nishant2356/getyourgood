@@ -298,7 +298,7 @@ export default function Navbar({ onSearch, onPlaceOrder }: NavbarProps) {
                                             exit={{ opacity: 0, scale: 0.95 }}
                                             className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg text-slate-800 overflow-hidden z-50"
                                         >
-                                            <button onClick={() => router.push("/")} className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50">Home</button>
+                                            <button onClick={() => router.push("/home")} className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50">Home</button>
                                             <button
                                                 className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
                                                 onClick={handleMyListingsClick}
@@ -432,21 +432,58 @@ export default function Navbar({ onSearch, onPlaceOrder }: NavbarProps) {
                             </div>
 
                             <nav className="mt-6 flex flex-col gap-2">
-                                <button onClick={() => router.push("/")} className="text-left p-3 rounded-md hover:bg-slate-50">Home</button>
-                                <button onClick={handleMyListingsClick} className="text-left p-3 rounded-md hover:bg-slate-50">My Listings</button>
-                                <button onClick={() => router.push("/orders")} className="text-left p-3 rounded-md hover:bg-slate-50">My Orders</button>
-                                <button onClick={handleListingClick} className="text-left p-3 rounded-md hover:bg-slate-50">Create Listing</button>
+                                <button
+                                    onClick={() => {
+                                        router.push("/home");
+                                        setIsMobileOpen(false);
+                                    }}
+                                    className="text-left p-3 rounded-md hover:bg-slate-50"
+                                >
+                                    Home
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        handleMyListingsClick();
+                                        setIsMobileOpen(false);
+                                    }}
+                                    className="text-left p-3 rounded-md hover:bg-slate-50"
+                                >
+                                    My Listings
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        router.push("/orders");
+                                        setIsMobileOpen(false);
+                                    }}
+                                    className="text-left p-3 rounded-md hover:bg-slate-50"
+                                >
+                                    My Orders
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        handleListingClick();
+                                        setTimeout(() => setIsMobileOpen(false), 200);
+                                      }}                                      
+                                    className="text-left p-3 rounded-md hover:bg-slate-50"
+                                >
+                                    Create Listing
+                                </button>
+
                                 <button
                                     onClick={() => {
                                         if (isLoggedIn) setIsAddressModalOpen(true);
                                         else router.push("/login");
-                                        setIsMobileOpen(false); // close drawer after click
+                                        setIsMobileOpen(false); // ✅ closes drawer after click
                                     }}
                                     className="text-left p-3 rounded-md hover:bg-slate-50 flex items-center gap-2"
                                 >
                                     <MapPin size={16} />
                                     Add Address
                                 </button>
+
                                 <button className="text-left p-3 rounded-md hover:bg-slate-50">Settings</button>
                             </nav>
                         </div>

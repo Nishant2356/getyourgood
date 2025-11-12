@@ -19,7 +19,7 @@ export default function LoginPage() {
     if (res?.error) {
       alert(res.error);
     } else if (res?.ok) {
-      window.location.href = "/";
+      window.location.href = "/home";
     } else {
       alert("Something went wrong");
     }
