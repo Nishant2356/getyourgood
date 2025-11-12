@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+  DELIVERY_AGENT
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  phone     String?  @unique
+  avatar    String?
+  bio       String?
+  role      Role     @default(USER)
+  addresses Json? // can store multiple addresses as an array
+  verified  Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  listings Listing[] @relation("UserListings")
+  orders   Order[]   @relation("UserOrders") // 👈 consistent relation name
+}
+
+model Item {
+  id          Int     @id @default(autoincrement())
+  name        String
+  category    String
+  price       Float
+  image       String
+  description String?
+}
+
+model Listing {
+  id           Int      @id @default(autoincrement())
+  items        Json
+  commission   Float
+  deliveryTime String?
+  address      Json?
+  creatorId    Int?
+  creator      User?    @relation("UserListings", fields: [creatorId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  orders Order[] @relation("ListingOrders") // ✅ remove fields and references
+}
+
+
+model Order {
+  id           Int      @id @default(autoincrement())
+  listingId    Int
+  items        Json
+  commission   Float
+  total        Float
+  deliveryTime String
+  address      Json?
+  acceptedById Int
+  status       String   @default("accepted")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userId Int
+  user   User @relation("UserOrders", fields: [userId], references: [id])
+
+listing Listing @relation("ListingOrders", fields: [listingId], references: [id])
+
+  @@index([listingId])
+  @@index([acceptedById])
+  @@map("orders")
+}
+

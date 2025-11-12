@@ -1,103 +1,164 @@
-import Image from "next/image";
+"use client";
+import React, { useState, useEffect } from "react";
+import Navbar from "@/components/Navbar";
+import ListingCard from "@/components/ListingCard";
+import { useSession } from "next-auth/react";
+import { Creator, Address, Item } from "@/types";
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+interface Listing {
+  id: number;
+  items: Item[];
+  commission: number;
+  creator: Creator;
+  deliveryTime: string;
+  address: Address;
+}
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+export default function Page() {
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [allListings, setAllListings] = useState<Listing[]>([]); // store all listings
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
+  // Fetch all listings on mount
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        const res = await fetch("/api/listings/get");
+        const data = await res.json();
+        if (data.success) {
+          setListings(data.listings);
+          setAllListings(data.listings); // keep original copy
+        }
+      } catch (err) {
+        console.error("Failed to fetch listings:", err);
+      }
+    };
+    fetchListings();
+  }, []);
+
+  // ✅ Search Listings
+  const handleSearch = (query: string) => {
+    const q = query.toLowerCase().trim();
+    if (!q) {
+      setListings(allListings); // reset if search is empty
+      return;
+    }
+
+    const filtered = allListings.filter((listing) => {
+      // Check if creator name contains query
+      const creatorMatch = listing.creator.name.toLowerCase().includes(q);
+
+      // Check if any item name contains query
+      const itemMatch = listing.items.some((item) =>
+        item.name.toLowerCase().includes(q)
+      );
+
+      return creatorMatch || itemMatch;
+    });
+
+    setListings(filtered);
+  };
+
+  // ✅ Add Listing
+  const handleAddListing = async (
+    items: Item[],
+    commission: number,
+    deliveryTime: string,
+    address: Address
+  ) => {
+    if (!userId) return console.error("User not logged in");
+    if (!address.street || !address.city || !address.houseNo) {
+      return alert("Please select or add a valid address!");
+    }
+
+    try {
+      const res = await fetch("/api/listings/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items,
+          commission,
+          deliveryTime,
+          address,
+          creatorId: Number(userId),
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setListings((prev) => [...prev, data.listing]);
+        console.log("Listing created:", data.listing);
+      } else {
+        console.error("Failed to create listing:", data.message);
+      }
+    } catch (err) {
+      console.error("Error creating listing:", err);
+    }
+  };
+
+  // ✅ Accept Listing
+// ✅ Accept Listing
+const handleAcceptListing = async (listingData: Listing) => {
+  if (!userId) return console.error("User not logged in");
+
+  // Prevent accepting your own listing
+  console.log(listingData.creator.id, userId)
+  if (listingData.creator.id == userId) {
+    return alert("You cannot accept your own listing!");
+  }
+
+  const totalPrice = listingData.items.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0
   );
+
+  try {
+    const res = await fetch("/api/orders/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        listingId: listingData.id,
+        items: listingData.items,
+        commission: listingData.commission,
+        total: totalPrice + listingData.commission,
+        deliveryTime: listingData.deliveryTime,
+        address: listingData.address,
+        userId: userId,
+      }),
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      alert("Listing accepted successfully!");
+      setListings((prev) => prev.filter((l) => l.id !== listingData.id));
+    } else {
+      console.error(data.message);
+    }
+  } catch (err) {
+    console.error("Error accepting listing:", err);
+  }
+};
+
+
+return (
+  <>
+    <Navbar onPlaceOrder={handleAddListing} onSearch={handleSearch} />
+
+    <div className="max-w-5xl mx-auto p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {listings.map((listing) => (
+        <ListingCard
+          key={listing.id}
+          id={listing.id}
+          items={listing.items}
+          commission={listing.commission}
+          creator={listing.creator}
+          deliveryTime={listing.deliveryTime}
+          address={listing.address}
+          onAccept={handleAcceptListing}
+        />
+      ))}
+    </div>
+  </>
+);
 }
