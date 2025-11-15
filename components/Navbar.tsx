@@ -397,7 +397,7 @@ export default function Navbar({ onSearch, onPlaceOrder }: NavbarProps) {
                                                 key={s}
                                                 onMouseDown={(ev) => ev.preventDefault()}
                                                 onClick={() => handleSelect(s)}
-                                                className={`px-4 py-2 text-sm hover:bg-green-50 cursor-pointer ${i === activeIndex ? "bg-green-50" : ""}`}
+                                                className={`px-4 py-2 text-sm text-green-600 hover:bg-green-50 cursor-pointer ${i === activeIndex ? "bg-green-50" : ""}`}
                                             >
                                                 {s}
                                             </li>
