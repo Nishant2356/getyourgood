@@ -8,6 +8,7 @@ interface MyListingCardProps {
   commission: number;
   deliveryTime: string;
   address: Address;
+  isAccepted: boolean;
   acceptedBy?: { id: string; name: string; phone?: string; email?: string } | null;
   onDelete?: (id: number) => void; // ✅ callback for parent component to remove from state
 }
@@ -18,6 +19,7 @@ export default function MyListingCard({
   commission,
   deliveryTime,
   address,
+  isAccepted,
   acceptedBy,
   onDelete,
 }: MyListingCardProps) {
@@ -28,7 +30,7 @@ export default function MyListingCard({
 
   const handleCancel = async () => {
     if (!confirm("Are you sure you want to cancel this listing?")) return;
-  
+
     setLoading(true);
     try {
       const res = await fetch(`/api/listings/delete`, {
@@ -36,7 +38,7 @@ export default function MyListingCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ listingId: id }),
       });
-  
+
       const data = await res.json();
       if (data.success) {
         toast.success("Listing cancelled successfully!");
@@ -100,13 +102,15 @@ export default function MyListingCard({
       </div>
 
       {/* ✅ Cancel Button */}
-      <button
-        onClick={handleCancel}
-        disabled={loading}
-        className="mt-3 px-3 py-1 rounded-md bg-red-600 text-white hover:bg-red-700 text-sm disabled:bg-red-400"
-      >
-        {loading ? "Cancelling..." : "Cancel Listing"}
-      </button>
+      {!isAccepted &&
+        <button
+          onClick={handleCancel}
+          disabled={loading}
+          className="mt-3 px-3 py-1 rounded-md bg-red-600 text-white hover:bg-red-700 text-sm disabled:bg-red-400"
+        >
+          {loading ? "Cancelling..." : "Cancel Listing"}
+        </button>
+      }
     </div>
   );
 }

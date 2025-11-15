@@ -48,7 +48,6 @@ export default function MyListingsPage() {
         const data = await res.json();
         if (data.success) {
           setListings(data.listings);
-          console.log(data.listings)
         } else {
           console.error(data.message);
         }
@@ -84,7 +83,9 @@ export default function MyListingsPage() {
                   phone: acceptedOrder.user?.phone || "No phone",
                   email: acceptedOrder.user?.email || "",
                 }
-              : null;            
+              : null;         
+              
+              console.log(acceptedBy)
 
               return (
                 <MyListingCard
@@ -94,6 +95,7 @@ export default function MyListingsPage() {
                   commission={listing.commission}
                   deliveryTime={listing.deliveryTime || "Not specified"}
                   address={listing.address}
+                  isAccepted={acceptedBy == null ? false: true}
                   acceptedBy={acceptedBy}
                   onDelete={(id) => setListings((prev) => prev.filter((l) => l.id !== id))}
                 />
